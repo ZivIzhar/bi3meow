@@ -10,7 +10,8 @@ from noise import split_to_folds, get_noisy_folds
 
 
 def get_reduced_data(p,data):
-    b = random.sample(data,len(data))
+    b = data
+    shuffle(b)
     return b[:(math.ceil(len(data)*p))]
 
 
@@ -34,11 +35,11 @@ def getTree(number, letter, data):
     finalData=[]
     featureList=[i for i in range(len(data[0])-1)]
     if number == '1':
-        tree=DecisionTreeClassifier(criterion="entropy",splitter="best",min_samples_split=4)
+        tree=DecisionTreeClassifier(criterion="entropy",splitter="best",min_samples_split=2)
     elif number == '2':
-        tree=DecisionTreeClassifier(criterion="entropy",splitter="random",min_samples_split=4)
+        tree=DecisionTreeClassifier(criterion="entropy",splitter="random",min_samples_split=2)
     else:
-        tree=DecisionTreeClassifier(criterion="entropy",splitter="random",min_samples_split=4)
+        tree=DecisionTreeClassifier(criterion="entropy",splitter="random",min_samples_split=2)
     if letter == 'a':
         newData = get_reduced_data(0.67, data)
     else:
