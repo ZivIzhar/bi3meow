@@ -40,10 +40,8 @@ def getTree(number, letter, data):
     else:
         tree=DecisionTreeClassifier(criterion="entropy",splitter="random",min_samples_split=4)
     if letter == 'a':
-        print("mitsi")
         newData = get_reduced_data(0.67, data)
     else:
-        print("meow")
         newData , featureList = get_reduced_features(0.67, data)
     for sample in newData:
         finalData.append(sample[:-1])
@@ -91,36 +89,42 @@ def check():
     return sumacc/10
 
 
-def runTrees(size,type,folds,noisyfolds):
-    sumtree=[0 for j in range(size)]
-    summacc=0
-    for i in range(0,10):
-        trees=[]
-        features=[]
-        train=[]
-        for j in range(0,10):
-            if i != j:
-                train.extend(noisyfolds[j])
-        for j in range(size):
-            tree ,featureList =getTree(type[1],type[0],train)
-            trees.append(tree)
-            features.append(featureList)
-
-        for j in range(size):
-            predictSamples=[]
-            predictResults=[]
-            if(type[0] == 'b'):
-                for x in range(len(folds[i])):
-                    predictSamples.append([folds[i][x][index] for index in features[j]])
-                    predictResults.append(folds[i][x][-1])
-            else:
-                predictSamples = [folds[i][index][:-1] for index in range(len(folds[i]))]
-                predictResults = [folds[i][index][-1] for index in range(len(folds[i]))]
-            sumtree[j]+=trees[j].score(predictSamples,predictResults)
+def createTrees(size,type,folds,testWith):
+    trees=[]
+    alldata=[]
+    for i in range(len(folds)):
+        alldata.extend(folds[i])
     for i in range(size):
-        sumtree[i] /= 10
-    return sumtree
-
+        tree, features= getTree(type[1],type[0],alldata)
+        trees.append(tree)
+    sum=0
+    predictSamples=[]
+    predictResults=[]
+    if(type[0] == 'b'):
+        for x in range(len(testWith)):
+            predictSamples.append([testWith[x][index] for index in features])
+            predictResults.append(testWith[x][-1])
+    else:
+        predictSamples = [testWith[index][:-1] for index in range(len(testWith))]
+        predictResults = [testWith[index][-1] for index in range(len(testWith))]
+    predicts=[]
+    for tree in trees:
+        predicts.append(tree.predict(predictSamples))
+    finalPrediction=[]
+    for i in range(len(predictResults)):
+        predSum=0
+        for j in range(len(trees)):
+            predSum+=int(predicts[j][i])
+        if predSum*2 > size:
+            finalPrediction.append(1)
+        else:
+            finalPrediction.append(0)
+    sum=0
+    for i in range(len(predictResults)):
+        if int(predictResults[i]) == finalPrediction[i]:
+            sum+=1
+    sum/=len(predictResults)
+    return sum
 
 if __name__ == "__main__":
     pkl_folds = open('folds.pkl', 'rb')
